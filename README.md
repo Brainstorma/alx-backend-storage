@@ -16,7 +16,7 @@ This repo contains projects for learning backend development data storage concep
   - Moves all files and directories contained in the user's old Home Directory to the new Home Directory path
 
 ### 1. Clone a repository 
-- [1-clone_repo](./1-clone_repo) - Bash script that clones a Git repository located at `https://github.com/HolbertonSchool/smile.git` into the `smile` directory.
+- [1-clone_repo](./1-clone_repo) - Bash script that clones a Git repository located at `https://github.com/brainstorma/alx-backend-storage.git` into the `smile` directory.
 
 ### 2. From a branch to another 
 - [2-from_a_branch_to_another](./2-from_a_branch_to_another) - Bash script that switches from one Git branch to another in a given repository.
