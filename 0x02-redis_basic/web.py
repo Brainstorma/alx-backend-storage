@@ -1,33 +1,38 @@
+#!/usr/bin/env python3
+'''A module with tools for request caching and tracking.
+'''
+import redis
 import requests
 from functools import wraps
-import redis
+from typing import Callable
 
-redis = redis.Redis()
 
-def count_url_access(url):
-    key = f'count:{url}'
-    redis.incr(key)
-    redis.expire(key, 10)
+redis_store = redis.Redis()
+'''The module-level Redis instance.
+'''
 
-def cache_url(url):
-    key = f'cache:{url}'
-    if redis.exists(key):
-        return redis.get(key)
 
-    html = requests.get(url).text
-    redis.setex(key, 10, html)
-    return html
+def data_cacher(method: Callable) -> Callable:
+    '''Caches the output of fetched data.
+    '''
+    @wraps(method)
+    def invoker(url) -> str:
+        '''The wrapper function for caching the output.
+        '''
+        redis_store.incr(f'count:{url}')
+        result = redis_store.get(f'result:{url}')
+        if result:
+            return result.decode('utf-8')
+        result = method(url)
+        redis_store.set(f'count:{url}', 0)
+        redis_store.setex(f'result:{url}', 10, result)
+        return result
+    return invoker
 
-def get_page(url):
-    count_url_access(url)
-    return cache_url(url)
 
-@app.route('/')
-def index():
-    return get_page('http://slowwly.robertomurray.co.uk')
-
-@app.route('/count')
-def count():
-    url = 'http://slowwly.robertomurray.co.uk'
-    count = int(redis.get(f'count:{url}'))
-    return str(count)
+@data_cacher
+def get_page(url: str) -> str:
+    '''Returns the content of a URL after caching the request's response,
+    and tracking the request.
+    '''
+    return requests.get(url).text
